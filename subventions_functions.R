@@ -1,55 +1,3 @@
-# get_subventions <- function(){
-#   
-#   subv <- read_excel("Subvention local 2017_full.xlsx", skip = 1,
-#              col_names = c("budget_code", "oblast", "budget",
-#                            "title", "amount", "special_amount", 
-#                            "district", "faction", "fullname", "purpose",
-#                            "lat", "long"))
-#   
-#   sum(is.na(subv$amount) & is.na(subv$special_amount))
-#   
-#   subv$amount[is.na(subv$amount)] <- 0
-#   subv$special_amount[is.na(subv$special_amount)] <- 0
-#   
-#   subv$total <- subv$amount + subv$special_amount
-#   
-#   subv <- subv %>% 
-#     mutate(faction = recode(faction,
-#                             `НФ` = "Народний фронт",
-#                             `БПП` = "Блок Петра Порошенка",
-#                             `ПВ` = "Відродження",
-#                             `ВН` = "Воля народу",
-#                             `ОП` = "Опозиційний блок",
-#                             `ПФ` = "Позафракційні",
-#                             `ВОБ` = "Батьківщина",
-#                             `ОБ` = "Опозиційний блок",
-#                             `ВБ` = "Батьківщина",
-#                             `ОС` = "Самопоміч",
-#                             `ПС` = "Самопоміч",
-#                             `ПБ` = "Батьківщина"))
-#   subv <- subv %>% 
-#     filter(!str_detect(title, "на формування інфраструктури об’єднаних територіальних громад"))
-#   subv$district[subv$fullname == "Арешонков Володимир Юрійович"] <- 64
-#   subv$district[subv$fullname == "Дзюблик Павло Володимирович"] <- 66
-#   subv$district[subv$fullname == "Дехтярчук Олександр Володимирович"] <- 154
-#   subv$district[subv$fullname == "Дідич Валентин Володимирович"] <- 40
-#   subv$fullname[subv$district == 29] <- "Купрій Віталій Миколайович"
-#   subv$district[subv$fullname == "Іллєнко Андрій Юрійович"] <- 215
-#   subv$district[subv$fullname == "Кіссе Антон Іванович"] <- 142
-#   subv$district[subv$fullname == "Святаш Дмитро Володимирович"] <- 170
-#   subv$district[subv$fullname == "Гузь Ігор Володимирович"] <- 195
-#   subv$fullname[subv$district == 87] <- "Дерев'янко Юрій Богданович"
-#   subv$faction[subv$fullname == "Безбах Яків Якович"] <- "Позафракційні"
-#   subv$faction[subv$fullname == "Микитась Максим Вікторович"] <- "Воля народу"
-#   
-#   subv$district[grepl("для навчальних закладів Святошинського району", subv$title)] <- 218
-#   subv$fullname[grepl("для навчальних закладів Святошинського району", subv$title)] <- "Ар'єв Володимир Ігорович"
-#   subv$faction[grepl("для навчальних закладів Святошинського району", subv$title)] <- "Блок Петра Порошенка"
-#   
-#   return(subv)
-#   
-# }
-
 get_committees_open <- function(){
   posts <- read_csv("http://data.rada.gov.ua/ogd/mps/skl8/mp-posts_ids.csv")
   posts_ids <- read_tsv("http://data.rada.gov.ua/ogd/mps/skl8/mp-posts_unit.txt", 
@@ -178,15 +126,6 @@ get_voting_results <- function(number, v_name){
   }
   return(voting_df)
 }
-
-# tymoshenko <- function(df){
-#   
-#   df <- df %>% 
-#     mutate(shortname = ifelse(shortname == "Тимошенко Ю.В." & faction == "Народний фронт",
-#                               "Тимошенко Юрій В.",  ifelse(shortname == "Тимошенко Ю.В." & faction == "Батьківщина",
-#                                                            "Тимошенко Юлія В.", shortname)))
-#   return(df)
-# }
 
 add_voting_as_var <- function(df, v_number, title){
   
