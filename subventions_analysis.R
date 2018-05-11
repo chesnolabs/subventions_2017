@@ -1,13 +1,15 @@
+options(scipen = 999)
 library(tidyverse)
 library(lubridate)
 library(readxl)
 library(openxlsx)
 library(rvest)
 library(edata)
+library(readxl)
 Sys.setenv("R_ZIPCMD" = "C:/Rtools/bin/zip.exe") # set correct Rtools path here
 source("subventions_functions.R")
 
-laws <- read_csv("data/laws_2017.csv") %>%
+laws <- read_excel("data/laws_2017.xlsx") %>%
   filter(voting_date != "18.01.2018") %>%
   mutate(id = paste(voting_date, voting_number, sep = "-"),
          shortname = str_replace(shortname, "’", "'"),
@@ -84,7 +86,7 @@ subv_coal <- subv %>%
   summarize(total = sum(total)) %>% 
   filter(!str_detect(fullname, "не відомо")) %>% 
   right_join(mps_major) %>% 
-  replace_na(list(total = 0)) %>% 
+  replace_na(list(total = 0))%>% 
   mutate(region = ifelse(oblast%in%c("Одеська", "Миколаївська", "Херсонська"),
                          "south", ifelse(oblast%in%c("Дніпропетровська", "Донецька", "Запорізька", "Луганська", "Харківська"),
                                          "east", ifelse(oblast%in%c("Волинська", "Закарпатська", "Івано-Франківська", "Львівська", "Рівненська", "Тернопільська", "Хмельницька", "Чернівецька"),
@@ -92,7 +94,6 @@ subv_coal <- subv %>%
   left_join(voting_with_coal, by = "fullname") %>%
   left_join(voting_budget, by = "fullname") %>%
   ungroup() %>% 
-  mutate(faction = as.factor(faction)) %>% 
   rowwise() %>% 
   mutate(budget = sum(c(vote_5000, vote_6600, vote_6161,
                       vote_7000, vote_6776d, vote_7258))) %>% 
@@ -183,7 +184,7 @@ compare_by_var(subv_coal, "pension")
 
 # laws 
 
-subv_coal$faction <- relevel(subv_coal$faction, ref = "Позафракційні")
+subv_coal$faction <- relevel(as.factor(subv_coal$faction), ref = "Позафракційні")
 
 model <- lm(total ~ with_coal + faction, data = subv_coal)
 summary(model)
@@ -388,16 +389,15 @@ abline(v = broom::tidy(model10)[broom::tidy(model10)$term == "budget",]$p.value,
        col = "red", lty = "dashed")
 sort(sample_df$p.value)
 
-test <- subv_coal %>% 
-  sample_n(20)
-broom::tidy(model10)
-round(broom::tidy(model10)$p.value, 2)
+# so, most probably the effect of voting for budget is not due to a chance
+
 library(stargazer)
 stargazer(model10, type = "text",
           title = "Модель пояснення загальної суми субвенцій на округ",
+          digits = 3, report = "vcp*",
+          dep.var.labels.include = F, header = F, digit.separator = " ",
+          single.row = T, dep.var.caption = "", omit.stat = c("ser", "f"),
+          covariate.labels = c(levels(subv_coal$faction)[-1], "Схід (порівняно з Центром)", "Південь", "Захід",
+          "Голосування за кожен ЗП про бюджет", "Наявність компаній", "Константа"),
           out = "best_model.html")
-# so, most probably the effect of voting for budget is not due to a chance
 
-# subv_coal %>% arrange(desc(total)) %>% 
-#   slice(1:20) %>% 
-#   select(fullname, district, total, vote_budget_2017)
